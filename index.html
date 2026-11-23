@@ -437,27 +437,32 @@
             }
         }
 
-        /* ===== Dynamic Gallery Carousel Track ===== */
-        #carousel-track {
+        /* ===== Dynamic Gallery & Certificate Carousel Track ===== */
+        #carousel-track,
+        #cert-track {
             display: flex;
             transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
             will-change: transform;
         }
 
-        .carousel-item {
+        .carousel-item,
+        .cert-carousel-item {
             flex-shrink: 0;
             transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
-        .carousel-item:hover {
+        .carousel-item:hover,
+        .cert-carousel-item:hover {
             transform: translateY(-8px);
         }
 
-        .carousel-dot {
+        .carousel-dot,
+        .cert-dot {
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .carousel-dot.active {
+        .carousel-dot.active,
+        .cert-dot.active {
             width: 2.25rem !important;
             background-color: #ff1e27 !important;
             box-shadow: 0 0 12px #ff1e27;
@@ -2048,7 +2053,7 @@
                         <div class="flex items-center gap-2">
                             <span id="cert-counter-text"
                                 class="text-[11px] font-mono font-bold text-spidey-crimson dark:text-spidey-gold px-2.5 py-0.5 rounded-md bg-red-100 dark:bg-red-950/60 border border-red-200 dark:border-red-800/40">
-                                SERTIFIKAT 1 DARI 4
+                                SERTIFIKAT 1 DARI 5
                             </span>
                         </div>
                     </div>
@@ -2357,6 +2362,9 @@
                         <button type="button" onclick="goToCertSlide(3)"
                             class="cert-dot w-2.5 h-2.5 rounded-full bg-gray-300 dark:bg-gray-700 hover:bg-spidey-crimson transition-all"
                             aria-label="Ke Sertifikat 4"></button>
+                        <button type="button" onclick="goToCertSlide(4)"
+                            class="cert-dot w-2.5 h-2.5 rounded-full bg-gray-300 dark:bg-gray-700 hover:bg-spidey-crimson transition-all"
+                            aria-label="Ke Sertifikat 5"></button>
                     </div>
 
                 </div>
@@ -3975,35 +3983,50 @@
             }, progressTick);
         }
 
-        // Pause otomatis saat kursor mouse diarahkan atau layar HP disentuh
+        // Pause otomatis saat kursor mouse diarahkan atau layar HP disentuh (Mobile Safe)
         if (carouselViewport) {
-            carouselViewport.addEventListener('mouseenter', () => { isCarouselPaused = true; });
+            carouselViewport.addEventListener('mouseenter', () => {
+                if (window.matchMedia('(pointer: fine)').matches) isCarouselPaused = true;
+            });
             carouselViewport.addEventListener('mouseleave', () => { isCarouselPaused = false; });
             carouselViewport.addEventListener('touchstart', () => { isCarouselPaused = true; }, { passive: true });
-            carouselViewport.addEventListener('touchend', () => { isCarouselPaused = false; }, { passive: true });
+            carouselViewport.addEventListener('touchend', () => {
+                setTimeout(() => { isCarouselPaused = false; }, 2000);
+            }, { passive: true });
+            carouselViewport.addEventListener('touchcancel', () => {
+                setTimeout(() => { isCarouselPaused = false; }, 1000);
+            }, { passive: true });
         }
 
         // Gestur Sentuh Geser (Swipe Gesture) Responsif pada Layar Mobile
         let touchStartX = 0;
+        let touchStartY = 0;
         let touchEndX = 0;
+        let touchEndY = 0;
         if (carouselViewport) {
             carouselViewport.addEventListener('touchstart', (e) => {
-                touchStartX = e.changedTouches[0].screenX;
+                if (e.changedTouches && e.changedTouches[0]) {
+                    touchStartX = e.changedTouches[0].clientX;
+                    touchStartY = e.changedTouches[0].clientY;
+                }
             }, { passive: true });
             carouselViewport.addEventListener('touchend', (e) => {
-                touchEndX = e.changedTouches[0].screenX;
-                const swipeDist = touchStartX - touchEndX;
-                if (swipeDist > 40) {
-                    nextCarouselSlide();
-                    if (typeof playThwipSound === 'function') playThwipSound();
-                } else if (swipeDist < -40) {
-                    prevCarouselSlide();
-                    if (typeof playThwipSound === 'function') playThwipSound();
+                if (e.changedTouches && e.changedTouches[0]) {
+                    touchEndX = e.changedTouches[0].clientX;
+                    touchEndY = e.changedTouches[0].clientY;
+                    const diffX = touchStartX - touchEndX;
+                    const diffY = touchStartY - touchEndY;
+                    if (Math.abs(diffX) > 35 && Math.abs(diffX) > Math.abs(diffY)) {
+                        if (diffX > 0) {
+                            nextCarouselSlide();
+                        } else {
+                            prevCarouselSlide();
+                        }
+                        if (typeof playThwipSound === 'function') playThwipSound();
+                    }
                 }
             }, { passive: true });
         }
-
-
 
         // Responsif Saat Layar Diputar atau Di-resize
         window.addEventListener('resize', () => {
@@ -4026,27 +4049,49 @@
         const certProgressBar = document.getElementById('cert-progress-bar');
         const certCounterText = document.getElementById('cert-counter-text');
         const certDotsContainer = document.getElementById('cert-dots-container');
-        let totalRealCertSlides = 4;
-        let currentCertIndex = 4;
+        let totalRealCertSlides = 5;
+        let currentCertIndex = 5;
         let isCertTransitioning = false;
         let isCertPaused = false;
         let certAutoSlideTimer = null;
         let certProgressPercent = 0;
-        const certSlideDuration = 4000; // 4 detik per sertifikat
-        const certProgressTick = 70;
+        const certSlideDuration = 3500; // 3.5 detik per slide
+        const certProgressTick = 50;
+        let certResumeTimer = null;
+
+        function pauseCertAutoSlide() {
+            isCertPaused = true;
+            if (certResumeTimer) clearTimeout(certResumeTimer);
+        }
+
+        function resumeCertAutoSlide(delay = 0) {
+            if (certResumeTimer) clearTimeout(certResumeTimer);
+            if (delay > 0) {
+                certResumeTimer = setTimeout(() => {
+                    isCertPaused = false;
+                }, delay);
+            } else {
+                isCertPaused = false;
+            }
+        }
 
         function getCertCardStep() {
             if (!certTrack || !certTrack.firstElementChild) return 0;
             const firstCard = certTrack.firstElementChild;
             const secondCard = firstCard.nextElementSibling;
-            if (secondCard) {
+            if (secondCard && secondCard.offsetLeft > firstCard.offsetLeft) {
                 return secondCard.offsetLeft - firstCard.offsetLeft;
             }
-            return firstCard.offsetWidth;
+            // Fallback akurat dan presisi untuk mobile
+            const firstWidth = firstCard.getBoundingClientRect().width || firstCard.offsetWidth || (certViewport ? certViewport.clientWidth : 300);
+            const gap = window.innerWidth >= 640 ? 24 : 16;
+            return firstWidth + gap;
         }
 
         function initInfiniteCertCarousel() {
             if (!certTrack) return;
+            if (certTrack.querySelector('[data-cert-clone]')) return;
+
             const originalCards = Array.from(certTrack.children);
             totalRealCertSlides = originalCards.length;
             if (totalRealCertSlides === 0) return;
@@ -4092,6 +4137,7 @@
         }
 
         function updateCertCarouselUI() {
+            if (totalRealCertSlides === 0) return;
             const realIndex = ((currentCertIndex % totalRealCertSlides) + totalRealCertSlides) % totalRealCertSlides;
 
             if (certCounterText) {
@@ -4102,7 +4148,7 @@
                 const dots = certDotsContainer.querySelectorAll('.cert-dot');
                 dots.forEach((dot, idx) => {
                     if (idx === realIndex) {
-                        dot.className = 'cert-dot w-6 h-2.5 rounded-full bg-spidey-crimson shadow-[0_0_12px_#e3000e] transition-all duration-300';
+                        dot.className = 'cert-dot active w-9 h-2.5 rounded-full bg-spidey-crimson shadow-[0_0_12px_#e3000e] transition-all duration-300';
                     } else {
                         dot.className = 'cert-dot w-2.5 h-2.5 rounded-full bg-gray-300 dark:bg-slate-700 hover:bg-spidey-crimson/70 transition-all duration-300 cursor-pointer';
                     }
@@ -4120,6 +4166,11 @@
             certTrack.style.transition = 'transform 0.65s cubic-bezier(0.22, 1, 0.36, 1)';
             certTrack.style.transform = `translate3d(-${currentCertIndex * getCertCardStep()}px, 0, 0)`;
             updateCertCarouselUI();
+
+            // Safety timeout agar tidak terkunci di HP
+            setTimeout(() => {
+                isCertTransitioning = false;
+            }, 700);
         }
 
         function prevCertSlide() {
@@ -4132,6 +4183,10 @@
             certTrack.style.transition = 'transform 0.65s cubic-bezier(0.22, 1, 0.36, 1)';
             certTrack.style.transform = `translate3d(-${currentCertIndex * getCertCardStep()}px, 0, 0)`;
             updateCertCarouselUI();
+
+            setTimeout(() => {
+                isCertTransitioning = false;
+            }, 700);
         }
 
         function goToCertSlide(targetRealIndex) {
@@ -4151,6 +4206,10 @@
             certTrack.style.transform = `translate3d(-${currentCertIndex * getCertCardStep()}px, 0, 0)`;
             updateCertCarouselUI();
             if (typeof playThwipSound === 'function') playThwipSound();
+
+            setTimeout(() => {
+                isCertTransitioning = false;
+            }, 700);
         }
 
         // Loop Teleport Tanpa Jeda untuk Sertifikat
@@ -4176,6 +4235,7 @@
         // Timer Auto-Slide Sertifikat
         function startCertAutoSlide() {
             if (certAutoSlideTimer) clearInterval(certAutoSlideTimer);
+            certProgressPercent = 0;
             certAutoSlideTimer = setInterval(() => {
                 if (!isCertPaused) {
                     certProgressPercent += (certProgressTick / certSlideDuration) * 100;
@@ -4190,30 +4250,60 @@
             }, certProgressTick);
         }
 
-        // Pause saat hover mouse / sentuhan pada Viewport Sertifikat
+        // Mouse hover pause (Desktop Only) & Touch Safe (Mobile Only)
         if (certViewport) {
-            certViewport.addEventListener('mouseenter', () => { isCertPaused = true; });
-            certViewport.addEventListener('mouseleave', () => { isCertPaused = false; });
-            certViewport.addEventListener('touchstart', () => { isCertPaused = true; }, { passive: true });
-            certViewport.addEventListener('touchend', () => { isCertPaused = false; }, { passive: true });
+            certViewport.addEventListener('mouseenter', () => {
+                if (window.matchMedia('(pointer: fine)').matches) {
+                    pauseCertAutoSlide();
+                }
+            });
+            certViewport.addEventListener('mouseleave', () => {
+                resumeCertAutoSlide();
+            });
+
+            // Touch support di mobile: pause saat jari menyentuh, dan otomatis resume setelah sentuhan selesai!
+            certViewport.addEventListener('touchstart', () => {
+                pauseCertAutoSlide();
+            }, { passive: true });
+
+            certViewport.addEventListener('touchend', () => {
+                resumeCertAutoSlide(2000); // Lanjutkan slide otomatis setelah 2 detik
+            }, { passive: true });
+
+            certViewport.addEventListener('touchcancel', () => {
+                resumeCertAutoSlide(1000);
+            }, { passive: true });
         }
 
-        // Swipe Touch Gesture untuk Sertifikat di Layar Mobile
+        // Swipe Touch Gesture cerdas untuk Layar Mobile
         let certTouchStartX = 0;
+        let certTouchStartY = 0;
         let certTouchEndX = 0;
+        let certTouchEndY = 0;
         if (certViewport) {
             certViewport.addEventListener('touchstart', (e) => {
-                certTouchStartX = e.changedTouches[0].screenX;
+                if (e.changedTouches && e.changedTouches[0]) {
+                    certTouchStartX = e.changedTouches[0].clientX;
+                    certTouchStartY = e.changedTouches[0].clientY;
+                }
             }, { passive: true });
+
             certViewport.addEventListener('touchend', (e) => {
-                certTouchEndX = e.changedTouches[0].screenX;
-                const swipeDist = certTouchStartX - certTouchEndX;
-                if (swipeDist > 40) {
-                    nextCertSlide();
-                    if (typeof playThwipSound === 'function') playThwipSound();
-                } else if (swipeDist < -40) {
-                    prevCertSlide();
-                    if (typeof playThwipSound === 'function') playThwipSound();
+                if (e.changedTouches && e.changedTouches[0]) {
+                    certTouchEndX = e.changedTouches[0].clientX;
+                    certTouchEndY = e.changedTouches[0].clientY;
+                    const diffX = certTouchStartX - certTouchEndX;
+                    const diffY = certTouchStartY - certTouchEndY;
+
+                    // Hanya geser kartu jika gerakan horizontal dominan
+                    if (Math.abs(diffX) > 35 && Math.abs(diffX) > Math.abs(diffY)) {
+                        if (diffX > 0) {
+                            nextCertSlide();
+                        } else {
+                            prevCertSlide();
+                        }
+                        if (typeof playThwipSound === 'function') playThwipSound();
+                    }
                 }
             }, { passive: true });
         }
@@ -4225,6 +4315,26 @@
             certTrack.style.transform = `translate3d(-${currentCertIndex * getCertCardStep()}px, 0, 0)`;
             certTrack.offsetHeight;
             certTrack.style.transition = 'transform 0.65s cubic-bezier(0.22, 1, 0.36, 1)';
+        });
+
+        // Pastikan posisi pas saat seluruh gambar selesai dimuat di mobile
+        window.addEventListener('load', () => {
+            if (certTrack) {
+                certTrack.style.transition = 'none';
+                certTrack.style.transform = `translate3d(-${currentCertIndex * getCertCardStep()}px, 0, 0)`;
+                certTrack.offsetHeight;
+                certTrack.style.transition = 'transform 0.65s cubic-bezier(0.22, 1, 0.36, 1)';
+            }
+        });
+
+        // Resume saat tab browser kembali aktif
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                isCertTransitioning = false;
+                resumeCertAutoSlide(500);
+            } else {
+                pauseCertAutoSlide();
+            }
         });
 
         // Sertifikat Lightbox Modal Functions
