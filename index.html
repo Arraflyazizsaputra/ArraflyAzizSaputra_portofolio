@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="dark scroll-smooth">
+<html lang="id" class="dark">
 
 <head>
     <meta charset="UTF-8">
@@ -97,7 +97,7 @@
         }
 
         html {
-            scroll-behavior: smooth;
+            scroll-behavior: auto;
         }
 
         html.dark {
@@ -155,7 +155,7 @@
             opacity: 1 !important;
         }
 
-        /* Section transparan-lembut agar canvas jaring terlihat di latar belakang */
+        /* Section sepenuhnya transparan agar canvas jaring menyambung mulus tanpa sambungan kasar */
         section,
         header,
         footer {
@@ -163,16 +163,15 @@
             z-index: 10;
         }
 
-        html.dark section {
-            background-color: transparent !important;
+        section[id] {
+            scroll-margin-top: 76px;
         }
 
-        html:not(.dark) section {
-            background-color: rgba(248, 250, 252, 0.72) !important;
-        }
-
+        html.dark section,
+        html:not(.dark) section,
         html:not(.dark) section:nth-of-type(even) {
-            background-color: rgba(241, 245, 249, 0.78) !important;
+            background-color: transparent !important;
+            background-image: none !important;
         }
 
         /* ===== Comic Accent Font ===== */
@@ -210,28 +209,17 @@
         .custom-scrollbar::-webkit-scrollbar {
             height: 4px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: rgba(227, 0, 14, 0.5);
             border-radius: 999px;
         }
 
-        /* ===== 3D Spider-Web Pattern CSS Background ===== */
-        html.dark .bg-spidey-grid {
-            background-color: #05070d;
-            background-image:
-                radial-gradient(circle at 50% 50%, rgba(227, 0, 14, 0.16) 0%, transparent 70%),
-                linear-gradient(to right, rgba(227, 0, 14, 0.08) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(227, 0, 14, 0.08) 1px, transparent 1px);
-            background-size: 100% 100%, 40px 40px, 40px 40px;
-        }
-
+        /* ===== Seamless Transparent Background (Kotak-kotak dihapus, hanya jaring responsif) ===== */
+        html.dark .bg-spidey-grid,
         html:not(.dark) .bg-spidey-grid {
-            background-color: #f8fafc;
-            background-image:
-                radial-gradient(circle at 50% 50%, rgba(227, 0, 14, 0.08) 0%, transparent 70%),
-                linear-gradient(to right, rgba(227, 0, 14, 0.05) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(227, 0, 14, 0.05) 1px, transparent 1px);
-            background-size: 100% 100%, 40px 40px, 40px 40px;
+            background-color: transparent !important;
+            background-image: none !important;
         }
 
         /* Spider Web Radial Overlays */
@@ -310,6 +298,18 @@
             background: linear-gradient(90deg, transparent 0%, rgba(227, 0, 14, 0.45) 50%, transparent 100%);
             opacity: 0.65;
             position: relative;
+            z-index: 10;
+        }
+
+        .spidey-divider-badge {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 2.25rem;
+            margin-top: -1.125rem;
+            margin-bottom: -1.125rem;
         }
 
         /* Card Hover Lift & Border Glow */
@@ -407,49 +407,65 @@
         }
 
         /* ===== State-of-the-Art Smooth Scroll Reveal Animations ===== */
-        .reveal {
+        .reveal:not(.active) {
             opacity: 0;
-            transform: translate3d(0, 30px, 0);
-            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-            transition-delay: var(--d, 0s);
-            will-change: opacity, transform;
+            transform: translate3d(0, 44px, 0) scale(0.96);
         }
 
-        .reveal-left {
+        .reveal-left:not(.active) {
             opacity: 0;
-            transform: translate3d(-30px, 0, 0);
-            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-            transition-delay: var(--d, 0s);
-            will-change: opacity, transform;
+            transform: translate3d(-40px, 0, 0) scale(0.97);
         }
 
-        .reveal-right {
+        .reveal-right:not(.active) {
             opacity: 0;
-            transform: translate3d(30px, 0, 0);
-            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-            transition-delay: var(--d, 0s);
-            will-change: opacity, transform;
+            transform: translate3d(40px, 0, 0) scale(0.97);
         }
 
-        /* Responsif Mobile: hindari clipping horizontal saat animasi muncul */
+        /* Responsif Mobile: animasi vertikal halus tanpa clipping horizontal */
         @media (max-width: 640px) {
-            .reveal-left,
-            .reveal-right {
-                transform: translate3d(0, 16px, 0);
+            .reveal:not(.active) {
+                transform: translate3d(0, 30px, 0) scale(0.97);
+            }
+
+            .reveal-left:not(.active),
+            .reveal-right:not(.active) {
+                transform: translate3d(0, 26px, 0) scale(0.97);
             }
         }
 
-        .reveal.active,
-        .reveal-left.active,
-        .reveal-right.active {
-            opacity: 1 !important;
-            transform: translate3d(0, 0, 0) !important;
+        /* Prioritas tinggi selama proses reveal agar tidak tertimpa Tailwind duration-300 */
+        .reveal:not(.reveal-done),
+        .reveal-left:not(.reveal-done),
+        .reveal-right:not(.reveal-done) {
+            will-change: opacity, transform;
+            transition:
+                opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0s),
+                transform 0.85s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0s) !important;
         }
 
-        .stagger-1 { --d: 0.06s; transition-delay: 0.06s; }
-        .stagger-2 { --d: 0.12s; transition-delay: 0.12s; }
-        .stagger-3 { --d: 0.18s; transition-delay: 0.18s; }
-        .stagger-4 { --d: 0.24s; transition-delay: 0.24s; }
+        .reveal.active:not(.reveal-done),
+        .reveal-left.active:not(.reveal-done),
+        .reveal-right.active:not(.reveal-done) {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(1);
+        }
+
+        .stagger-1 {
+            --d: 0.08s;
+        }
+
+        .stagger-2 {
+            --d: 0.2s;
+        }
+
+        .stagger-3 {
+            --d: 0.32s;
+        }
+
+        .stagger-4 {
+            --d: 0.44s;
+        }
 
         /* Typing Cursor */
         .typing-cursor::after {
@@ -458,14 +474,22 @@
         }
 
         @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
         }
 
         /* Preloader Smooth Exit Transition */
         #page-preloader {
             transition: opacity 0.4s ease, visibility 0.4s ease, transform 0.4s ease;
         }
+
         #page-preloader.loaded {
             opacity: 0 !important;
             visibility: hidden !important;
@@ -480,8 +504,13 @@
         }
 
         @keyframes spiderSwing {
-            0% { transform: rotate(-5deg); }
-            100% { transform: rotate(5deg); }
+            0% {
+                transform: rotate(-5deg);
+            }
+
+            100% {
+                transform: rotate(5deg);
+            }
         }
 
         /* Spider-Web Corner Accents */
@@ -631,6 +660,7 @@
         }
 
         @media (prefers-reduced-motion: reduce) {
+
             *,
             *::before,
             *::after {
@@ -667,38 +697,137 @@
             }
         }
 
-        .skill-red { color: #b91c1c; background: rgba(254, 226, 226, 0.75); border-color: rgba(248, 113, 113, 0.35); }
-        .dark .skill-red { color: #fca5a5; background: rgba(127, 29, 29, 0.22); border-color: rgba(248, 113, 113, 0.25); }
+        .skill-red {
+            color: #b91c1c;
+            background: rgba(254, 226, 226, 0.75);
+            border-color: rgba(248, 113, 113, 0.35);
+        }
 
-        .skill-blue { color: #1d4ed8; background: rgba(219, 234, 254, 0.75); border-color: rgba(96, 165, 250, 0.35); }
-        .dark .skill-blue { color: #93c5fd; background: rgba(30, 64, 175, 0.22); border-color: rgba(96, 165, 250, 0.25); }
+        .dark .skill-red {
+            color: #fca5a5;
+            background: rgba(127, 29, 29, 0.22);
+            border-color: rgba(248, 113, 113, 0.25);
+        }
 
-        .skill-yellow { color: #a16207; background: rgba(254, 243, 199, 0.8); border-color: rgba(250, 204, 21, 0.4); }
-        .dark .skill-yellow { color: #fde047; background: rgba(113, 63, 18, 0.25); border-color: rgba(250, 204, 21, 0.25); }
+        .skill-blue {
+            color: #1d4ed8;
+            background: rgba(219, 234, 254, 0.75);
+            border-color: rgba(96, 165, 250, 0.35);
+        }
 
-        .skill-cyan { color: #0e7490; background: rgba(207, 250, 254, 0.8); border-color: rgba(34, 211, 238, 0.35); }
-        .dark .skill-cyan { color: #67e8f9; background: rgba(21, 94, 117, 0.25); border-color: rgba(34, 211, 238, 0.25); }
+        .dark .skill-blue {
+            color: #93c5fd;
+            background: rgba(30, 64, 175, 0.22);
+            border-color: rgba(96, 165, 250, 0.25);
+        }
 
-        .skill-indigo { color: #4338ca; background: rgba(224, 231, 255, 0.8); border-color: rgba(129, 140, 248, 0.35); }
-        .dark .skill-indigo { color: #a5b4fc; background: rgba(55, 48, 163, 0.25); border-color: rgba(129, 140, 248, 0.25); }
+        .skill-yellow {
+            color: #a16207;
+            background: rgba(254, 243, 199, 0.8);
+            border-color: rgba(250, 204, 21, 0.4);
+        }
 
-        .skill-green { color: #047857; background: rgba(209, 250, 229, 0.8); border-color: rgba(52, 211, 153, 0.35); }
-        .dark .skill-green { color: #6ee7b7; background: rgba(6, 78, 59, 0.25); border-color: rgba(52, 211, 153, 0.25); }
+        .dark .skill-yellow {
+            color: #fde047;
+            background: rgba(113, 63, 18, 0.25);
+            border-color: rgba(250, 204, 21, 0.25);
+        }
 
-        .skill-purple { color: #7e22ce; background: rgba(243, 232, 255, 0.8); border-color: rgba(192, 132, 252, 0.35); }
-        .dark .skill-purple { color: #d8b4fe; background: rgba(88, 28, 135, 0.25); border-color: rgba(192, 132, 252, 0.25); }
+        .skill-cyan {
+            color: #0e7490;
+            background: rgba(207, 250, 254, 0.8);
+            border-color: rgba(34, 211, 238, 0.35);
+        }
 
-        .skill-pink { color: #be185d; background: rgba(252, 231, 243, 0.8); border-color: rgba(244, 114, 182, 0.35); }
-        .dark .skill-pink { color: #f9a8d4; background: rgba(131, 24, 67, 0.25); border-color: rgba(244, 114, 182, 0.25); }
+        .dark .skill-cyan {
+            color: #67e8f9;
+            background: rgba(21, 94, 117, 0.25);
+            border-color: rgba(34, 211, 238, 0.25);
+        }
 
-        .skill-orange { color: #c2410c; background: rgba(255, 237, 213, 0.8); border-color: rgba(251, 146, 60, 0.35); }
-        .dark .skill-orange { color: #fdba74; background: rgba(154, 52, 18, 0.25); border-color: rgba(251, 146, 60, 0.25); }
+        .skill-indigo {
+            color: #4338ca;
+            background: rgba(224, 231, 255, 0.8);
+            border-color: rgba(129, 140, 248, 0.35);
+        }
 
-        .skill-teal { color: #0f766e; background: rgba(204, 251, 241, 0.8); border-color: rgba(45, 212, 191, 0.35); }
-        .dark .skill-teal { color: #5eead4; background: rgba(17, 94, 89, 0.25); border-color: rgba(45, 212, 191, 0.25); }
+        .dark .skill-indigo {
+            color: #a5b4fc;
+            background: rgba(55, 48, 163, 0.25);
+            border-color: rgba(129, 140, 248, 0.25);
+        }
 
-        .skill-slate { color: #475569; background: rgba(226, 232, 240, 0.75); border-color: rgba(148, 163, 184, 0.4); }
-        .dark .skill-slate { color: #cbd5e1; background: rgba(51, 65, 85, 0.35); border-color: rgba(148, 163, 184, 0.2); }
+        .skill-green {
+            color: #047857;
+            background: rgba(209, 250, 229, 0.8);
+            border-color: rgba(52, 211, 153, 0.35);
+        }
+
+        .dark .skill-green {
+            color: #6ee7b7;
+            background: rgba(6, 78, 59, 0.25);
+            border-color: rgba(52, 211, 153, 0.25);
+        }
+
+        .skill-purple {
+            color: #7e22ce;
+            background: rgba(243, 232, 255, 0.8);
+            border-color: rgba(192, 132, 252, 0.35);
+        }
+
+        .dark .skill-purple {
+            color: #d8b4fe;
+            background: rgba(88, 28, 135, 0.25);
+            border-color: rgba(192, 132, 252, 0.25);
+        }
+
+        .skill-pink {
+            color: #be185d;
+            background: rgba(252, 231, 243, 0.8);
+            border-color: rgba(244, 114, 182, 0.35);
+        }
+
+        .dark .skill-pink {
+            color: #f9a8d4;
+            background: rgba(131, 24, 67, 0.25);
+            border-color: rgba(244, 114, 182, 0.25);
+        }
+
+        .skill-orange {
+            color: #c2410c;
+            background: rgba(255, 237, 213, 0.8);
+            border-color: rgba(251, 146, 60, 0.35);
+        }
+
+        .dark .skill-orange {
+            color: #fdba74;
+            background: rgba(154, 52, 18, 0.25);
+            border-color: rgba(251, 146, 60, 0.25);
+        }
+
+        .skill-teal {
+            color: #0f766e;
+            background: rgba(204, 251, 241, 0.8);
+            border-color: rgba(45, 212, 191, 0.35);
+        }
+
+        .dark .skill-teal {
+            color: #5eead4;
+            background: rgba(17, 94, 89, 0.25);
+            border-color: rgba(45, 212, 191, 0.25);
+        }
+
+        .skill-slate {
+            color: #475569;
+            background: rgba(226, 232, 240, 0.75);
+            border-color: rgba(148, 163, 184, 0.4);
+        }
+
+        .dark .skill-slate {
+            color: #cbd5e1;
+            background: rgba(51, 65, 85, 0.35);
+            border-color: rgba(148, 163, 184, 0.2);
+        }
 
         .skill-tag:hover {
             transform: translateY(-2px);
@@ -751,22 +880,22 @@
     </div>
     <!-- Preloader Instant Dismissal Fail-Safe: Jaminan tidak akan pernah macet di layar hitam -->
     <script>
-        (function() {
-            function emergencyDismiss() {
-                var p = document.getElementById('page-preloader');
-                if (p && !p.classList.contains('loaded')) {
-                    p.classList.add('loaded');
-                    setTimeout(function() { p.style.display = 'none'; }, 400);
+            (function () {
+                function emergencyDismiss() {
+                    var p = document.getElementById('page-preloader');
+                    if (p && !p.classList.contains('loaded')) {
+                        p.classList.add('loaded');
+                        setTimeout(function () { p.style.display = 'none'; }, 400);
+                    }
                 }
-            }
-            if (document.readyState === 'complete') {
-                setTimeout(emergencyDismiss, 50);
-            } else {
-                window.addEventListener('load', emergencyDismiss);
-                document.addEventListener('DOMContentLoaded', emergencyDismiss);
-                setTimeout(emergencyDismiss, 600);
-            }
-        })();
+                if (document.readyState === 'complete') {
+                    setTimeout(emergencyDismiss, 50);
+                } else {
+                    window.addEventListener('load', emergencyDismiss);
+                    document.addEventListener('DOMContentLoaded', emergencyDismiss);
+                    setTimeout(emergencyDismiss, 600);
+                }
+            })();
     </script>
 
     <!-- ============================================================
@@ -1051,18 +1180,21 @@
 
                     <!-- Hero Stats Cards -->
                     <div class="grid grid-cols-3 gap-2.5 sm:gap-4 max-w-lg mx-auto lg:mx-0">
-                        <div class="p-2 sm:p-3.5 rounded-xl bg-white/90 dark:bg-red-950/30 backdrop-blur-md border border-slate-200 dark:border-white/10 text-center shadow-sm">
+                        <div
+                            class="p-2 sm:p-3.5 rounded-xl bg-white/90 dark:bg-red-950/30 backdrop-blur-md border border-slate-200 dark:border-white/10 text-center shadow-sm">
                             <p class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">2+ <span
                                     class="text-spidey-crimson text-base font-comic">THN</span></p>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-medium">Pengalaman</p>
                         </div>
-                        <div class="p-2 sm:p-3.5 rounded-xl bg-white/90 dark:bg-red-950/30 backdrop-blur-md border border-slate-200 dark:border-white/10 text-center shadow-sm">
+                        <div
+                            class="p-2 sm:p-3.5 rounded-xl bg-white/90 dark:bg-red-950/30 backdrop-blur-md border border-slate-200 dark:border-white/10 text-center shadow-sm">
                             <p class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">2+ <span
                                     class="text-spidey-crimson dark:text-spidey-gold text-base font-comic">WEB</span>
                             </p>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-medium">Proyek Sukses</p>
                         </div>
-                        <div class="p-2 sm:p-3.5 rounded-xl bg-white/90 dark:bg-red-950/30 backdrop-blur-md border border-slate-200 dark:border-white/10 text-center shadow-sm">
+                        <div
+                            class="p-2 sm:p-3.5 rounded-xl bg-white/90 dark:bg-red-950/30 backdrop-blur-md border border-slate-200 dark:border-white/10 text-center shadow-sm">
                             <p class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">10%</p>
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-medium">Komitmen & Passion
                             </p>
@@ -1133,7 +1265,7 @@
     <!-- ============================================================
          TENTANG SAYA (ABOUT ME)
          ============================================================ -->
-    <section id="tentang" class="py-16 sm:py-24 relative overflow-hidden bg-white dark:bg-[#060912] web-radial-overlay">
+    <section id="tentang" class="py-16 sm:py-20 lg:py-24 relative overflow-x-clip">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
             <!-- Section Title -->
@@ -1162,7 +1294,8 @@
                         </div>
 
                         <!-- Window Bar -->
-                        <div class="flex items-center justify-between pb-3 sm:pb-4 border-b border-red-900/30 mb-4 sm:mb-6 gap-2">
+                        <div
+                            class="flex items-center justify-between pb-3 sm:pb-4 border-b border-red-900/30 mb-4 sm:mb-6 gap-2">
                             <div class="flex items-center gap-1.5 sm:gap-2 min-w-0">
                                 <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500 shrink-0"></span>
                                 <span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-400 shrink-0"></span>
@@ -1176,7 +1309,8 @@
 
                         <!-- Code details (Responsive, wrapped & scroll-safe) -->
                         <div class="overflow-x-auto pb-1 -mx-1 px-1 custom-scrollbar">
-                            <div class="font-mono text-[11.5px] sm:text-xs md:text-sm text-gray-300 space-y-2 whitespace-normal break-words leading-relaxed min-w-[260px]">
+                            <div
+                                class="font-mono text-[11.5px] sm:text-xs md:text-sm text-gray-300 space-y-2 whitespace-normal break-words leading-relaxed min-w-[260px]">
                                 <p><span class="text-spidey-crimson font-bold">const</span> <span
                                         class="text-blue-400 font-semibold">arraflyProfile</span> = {</p>
                                 <p class="pl-3 sm:pl-5"><span class="text-spidey-gold">"nama"</span>: <span
@@ -1189,14 +1323,16 @@
                                         class="text-green-400">"Universitas Subang"</span>,</p>
                                 <p class="pl-3 sm:pl-5"><span class="text-spidey-gold">"spideySense"</span>: <span
                                         class="text-spidey-crimson font-semibold">true</span>,</p>
-                                <p class="pl-6 sm:pl-10 text-gray-400 text-[10.5px] sm:text-xs italic leading-tight">// Peka terhadap desain web visual</p>
+                                <p class="pl-6 sm:pl-10 text-gray-400 text-[10.5px] sm:text-xs italic leading-tight">//
+                                    Peka terhadap desain web visual</p>
                                 <p class="pl-3 sm:pl-5"><span class="text-spidey-gold">"coreStack"</span>: [</p>
                                 <p class="pl-6 sm:pl-10 text-yellow-300">"HTML5/CSS3", "JavaScript",</p>
                                 <p class="pl-6 sm:pl-10 text-yellow-300">"Tailwind CSS", "CodeIgniter 4",</p>
                                 <p class="pl-6 sm:pl-10 text-yellow-300">"Figma", "Canva"</p>
                                 <p class="pl-3 sm:pl-5">],</p>
                                 <p class="pl-3 sm:pl-5"><span class="text-spidey-gold">"motto"</span>: <span
-                                        class="text-green-400">"Tetap menjadi segelas air ditengah kobaran api"</span></p>
+                                        class="text-green-400">"Tetap menjadi segelas air ditengah kobaran api"</span>
+                                </p>
                                 <p>};</p>
                             </div>
                         </div>
@@ -1226,12 +1362,13 @@
                         <div class="group rounded-xl border border-slate-200/80 dark:border-white/10 
                                         bg-slate-50/80 dark:bg-[#091120]/80 backdrop-blur-md p-3.5 sm:p-5 
                                         transition-all duration-300 hover:-translate-y-1 
-                                        hover:border-spidey-crimson hover:shadow-lg hover:shadow-spidey-crimson/5">
+                                        hover:border-spidey-crimson hover:shadow-lg hover:shadow-spidey-crimson/5 reveal stagger-1">
                             <p class="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider 
                                           text-spidey-crimson mb-1.5 sm:mb-2 truncate">
                                 Perguruan Tinggi
                             </p>
-                            <h4 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-snug break-words">
+                            <h4
+                                class="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-snug break-words">
                                 Universitas Subang
                             </h4>
                         </div>
@@ -1240,12 +1377,13 @@
                         <div class="group rounded-xl border border-slate-200/80 dark:border-white/10 
                                         bg-slate-50/80 dark:bg-[#091120]/80 backdrop-blur-md p-3.5 sm:p-5 
                                         transition-all duration-300 hover:-translate-y-1 
-                                        hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/5">
+                                        hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/5 reveal stagger-2">
                             <p class="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider 
                                           text-blue-500 dark:text-blue-400 mb-1.5 sm:mb-2 truncate">
                                 Program Studi
                             </p>
-                            <h4 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-snug break-words">
+                            <h4
+                                class="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-snug break-words">
                                 Sistem Informasi
                             </h4>
                         </div>
@@ -1254,7 +1392,7 @@
                         <div class="group rounded-xl border border-slate-200/80 dark:border-white/10 
                                         bg-slate-50/80 dark:bg-[#091120]/80 backdrop-blur-md p-3.5 sm:p-5 
                                         transition-all duration-300 hover:-translate-y-1 
-                                        hover:border-yellow-500 hover:shadow-lg hover:shadow-yellow-500/5">
+                                        hover:border-yellow-500 hover:shadow-lg hover:shadow-yellow-500/5 reveal stagger-3">
                             <p class="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider 
                                           text-yellow-600 dark:text-yellow-400 mb-1.5 sm:mb-2 truncate">
                                 Indeks Prestasi Kumulatif
@@ -1268,12 +1406,13 @@
                         <div class="group rounded-xl border border-slate-200/80 dark:border-white/10 
                                         bg-slate-50/80 dark:bg-[#091120]/80 backdrop-blur-md p-3.5 sm:p-5 
                                         transition-all duration-300 hover:-translate-y-1 
-                                        hover:border-spidey-crimson hover:shadow-lg hover:shadow-spidey-crimson/5">
+                                        hover:border-spidey-crimson hover:shadow-lg hover:shadow-spidey-crimson/5 reveal stagger-4">
                             <p class="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider 
                                           text-spidey-crimson mb-1.5 sm:mb-2 truncate">
                                 Cita-Cita
                             </p>
-                            <h4 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-snug break-words">
+                            <h4
+                                class="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-snug break-words">
                                 Anggota Dewan RI
                             </h4>
                         </div>
@@ -1292,7 +1431,7 @@
     <!-- ============================================================
      KEAHLIAN (SKILLS) - SHARP LIQUID GLASS
      ============================================================ -->
-    <section id="keahlian" class="py-24 relative overflow-hidden bg-slate-50 dark:bg-[#05070d] web-radial-overlay">
+    <section id="keahlian" class="py-16 sm:py-20 lg:py-24 relative overflow-x-clip">
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
@@ -1502,7 +1641,7 @@
     <!-- ============================================================
          PENGALAMAN & SERTIFIKAT (EXPERIENCE & CERTIFICATIONS)
          ============================================================ -->
-    <section id="pengalaman" class="py-24 relative bg-white dark:bg-[#060912] web-radial-overlay">
+    <section id="pengalaman" class="py-16 sm:py-20 lg:py-24 relative overflow-x-clip">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
             <!-- Section Header -->
@@ -2037,7 +2176,7 @@
     <!-- ============================================================
          PORTOFOLIO / PROYEK (PROJECTS SHOWCASE)
          ============================================================ -->
-    <section id="proyek" class="py-24 relative bg-white dark:bg-[#060912]">
+    <section id="proyek" class="py-16 sm:py-20 lg:py-24 relative overflow-x-clip">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
             <div class="text-center mb-16 reveal">
@@ -2086,7 +2225,8 @@
                         </div>
 
                         <div class="p-4 sm:p-6">
-                            <h3 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-spidey-crimson transition-colors">
+                            <h3
+                                class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-spidey-crimson transition-colors">
                                 Sistem Informasi Pencarian Kost Subang (SIKOSUB)
                             </h3>
                             <p class="text-sm text-slate-600 dark:text-gray-400 mb-6 leading-relaxed">
@@ -2106,7 +2246,8 @@
                         </div>
                     </div>
 
-                    <div class="px-4 pb-4 pt-2 sm:px-6 sm:pb-6 border-t border-slate-200 dark:border-white/10 flex items-center gap-3">
+                    <div
+                        class="px-4 pb-4 pt-2 sm:px-6 sm:pb-6 border-t border-slate-200 dark:border-white/10 flex items-center gap-3">
                         <a href="https://github.com/Arraflyazizsaputra/SIKOSUB.git" target="_blank" rel="noopener"
                             class="flex-1 py-2.5 rounded-xl bg-slate-200 dark:bg-gray-900 hover:bg-slate-300 dark:hover:bg-gray-800 text-slate-800 dark:text-gray-200 text-xs font-bold flex items-center justify-center gap-1.5 border border-slate-300 dark:border-gray-700 transition-colors">
                             <i data-lucide="github" class="w-4 h-4"></i> Lihat Kode Di Github
@@ -2148,7 +2289,8 @@
                         </div>
 
                         <div class="p-4 sm:p-6">
-                            <h3 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-spidey-crimson transition-colors">
+                            <h3
+                                class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-spidey-crimson transition-colors">
                                 Web Profil Caffe SUKAMAJOE HOUSE
                             </h3>
                             <p class="text-sm text-slate-600 dark:text-gray-400 mb-6 leading-relaxed">
@@ -2167,7 +2309,8 @@
                         </div>
                     </div>
 
-                    <div class="px-4 pb-4 pt-2 sm:px-6 sm:pb-6 border-t border-slate-200 dark:border-white/10 flex items-center gap-3">
+                    <div
+                        class="px-4 pb-4 pt-2 sm:px-6 sm:pb-6 border-t border-slate-200 dark:border-white/10 flex items-center gap-3">
                         <a href="https://github.com/Arraflyazizsaputra/WebProfil_caffeSukamajuHose.git" target="_blank"
                             rel="noopener"
                             class="flex-1 py-2.5 rounded-xl bg-slate-200 dark:bg-gray-900 hover:bg-slate-300 dark:hover:bg-gray-800 text-slate-800 dark:text-gray-200 text-xs font-bold flex items-center justify-center gap-1.5 border border-slate-300 dark:border-gray-700 transition-colors">
@@ -2209,7 +2352,8 @@
                         </div>
 
                         <div class="p-4 sm:p-6">
-                            <h3 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-spidey-crimson transition-colors">
+                            <h3
+                                class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-spidey-crimson transition-colors">
                                 Website Profil Company AZPentertaiment.corp
                             </h3>
                             <p class="text-sm text-slate-600 dark:text-gray-400 mb-6 leading-relaxed">
@@ -2228,7 +2372,8 @@
                         </div>
                     </div>
 
-                    <div class="px-4 pb-4 pt-2 sm:px-6 sm:pb-6 border-t border-slate-200 dark:border-white/10 flex items-center gap-3">
+                    <div
+                        class="px-4 pb-4 pt-2 sm:px-6 sm:pb-6 border-t border-slate-200 dark:border-white/10 flex items-center gap-3">
                         <a href="https://github.com/Arraflyazizsaputra/AZP_ENTERTAIMENT_WEBSITE.git" target="_blank"
                             rel="noopener"
                             class="flex-1 py-2.5 rounded-xl bg-slate-200 dark:bg-gray-900 hover:bg-slate-300 dark:hover:bg-gray-800 text-slate-800 dark:text-gray-200 text-xs font-bold flex items-center justify-center gap-1.5 border border-slate-300 dark:border-gray-700 transition-colors">
@@ -2247,7 +2392,7 @@
     <!-- ============================================================
          GALERI LUCU & KEREN (3 GRID FOTO DENGAN LIGHTBOX)
          ============================================================ -->
-    <section id="galeri" class="py-24 relative bg-slate-50 dark:bg-[#05070d] web-radial-overlay">
+    <section id="galeri" class="py-16 sm:py-20 lg:py-24 relative overflow-x-clip">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
             <div class="text-center mb-12 reveal">
@@ -2723,7 +2868,7 @@
     <!-- ============================================================
          MUSIK FAVORIT (PLAYER SPOTIFY & PLAYLIST GRID RESPONSIF)
          ============================================================ -->
-    <section id="musik" class="py-20 sm:py-24 relative bg-white dark:bg-[#060912]">
+    <section id="musik" class="py-16 sm:py-20 lg:py-24 relative overflow-x-clip">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
             <div class="text-center mb-12 sm:mb-16 reveal">
@@ -2839,7 +2984,7 @@
     <!-- ============================================================
          KONTAK (CONTACT CARDS)
          ============================================================ -->
-    <section id="kontak" class="py-24 relative bg-slate-50 dark:bg-[#05070d] web-radial-overlay">
+    <section id="kontak" class="py-16 sm:py-20 lg:py-24 relative overflow-x-clip">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
             <div class="text-center mb-16 reveal">
@@ -2918,7 +3063,7 @@
 
                 <!-- GitHub Card -->
                 <a href="https://github.com/Arraflyazizsaputra" target="_blank" rel="noopener"
-                    class="spidey-card rounded-2xl bg-white dark:bg-[#091120] border border-slate-200 dark:border-white/10 hover:border-slate-400 dark:hover:border-slate-400/80 p-4 sm:p-5 md:p-6 flex items-center gap-3.5 sm:gap-5 group shadow-lg dark:shadow-xl hover:shadow-[0_0_25px_rgba(255,255,255,0.12)] transition-all duration-300 reveal stagger-1">
+                    class="spidey-card rounded-2xl bg-white dark:bg-[#091120] border border-slate-200 dark:border-white/10 hover:border-slate-400 dark:hover:border-slate-400/80 p-4 sm:p-5 md:p-6 flex items-center gap-3.5 sm:gap-5 group shadow-lg dark:shadow-xl hover:shadow-[0_0_25px_rgba(255,255,255,0.12)] transition-all duration-300 reveal stagger-4">
                     <div
                         class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-[#2b3137] via-[#24292e] to-[#0d1117] dark:from-slate-800 dark:to-black flex items-center justify-center text-white shadow-lg shadow-slate-900/40 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-300 border border-white/20 flex-shrink-0">
                         <i class="bi bi-github text-2xl sm:text-3xl leading-none"></i>
@@ -2984,7 +3129,7 @@
     <!-- ============================================================
          FLOATING BACK TO TOP BUTTON
          ============================================================ -->
-    <button id="back-to-top" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" aria-label="Back to Top"
+    <button id="back-to-top" onclick="window.__smoothScrollTo ? window.__smoothScrollTo(0) : window.scrollTo({ top: 0, behavior: 'smooth' })" aria-label="Back to Top"
         class="fixed bottom-6 right-6 z-40 p-3.5 rounded-2xl bg-spidey-crimson hover:bg-red-600 text-white shadow-2xl shadow-spidey-crimson/80 border border-white/20 hover:scale-110 active:scale-95 transition-all">
         <i data-lucide="chevron-up" class="w-5 h-5 stroke-[3]"></i>
     </button>
@@ -2994,36 +3139,36 @@
          JAVASCRIPT LOGIC
          ============================================================ -->
     <script>
-            // 0. Smooth Refresh & Page Preloader Lifecycle (Ultra-Smooth Entry)
-            (function initSmoothRefreshAndLoader() {
-                if ('scrollRestoration' in history) {
-                    history.scrollRestoration = 'manual';
-                }
-                window.scrollTo(0, 0);
+        // 0. Smooth Refresh & Page Preloader Lifecycle (Ultra-Smooth Entry)
+        (function initSmoothRefreshAndLoader() {
+            if ('scrollRestoration' in history) {
+                history.scrollRestoration = 'manual';
+            }
+            window.scrollTo(0, 0);
 
-                const preloader = document.getElementById('page-preloader');
-                const progressBar = document.getElementById('preloader-progress-bar');
-                if (progressBar) progressBar.style.width = '75%';
+            const preloader = document.getElementById('page-preloader');
+            const progressBar = document.getElementById('preloader-progress-bar');
+            if (progressBar) progressBar.style.width = '75%';
 
-                function dismissPreloader() {
-                    if (!preloader || preloader.classList.contains('loaded')) return;
-                    if (progressBar) progressBar.style.width = '100%';
+            function dismissPreloader() {
+                if (!preloader || preloader.classList.contains('loaded')) return;
+                if (progressBar) progressBar.style.width = '100%';
+                setTimeout(() => {
+                    preloader.classList.add('loaded');
                     setTimeout(() => {
-                        preloader.classList.add('loaded');
-                        setTimeout(() => {
-                            preloader.style.display = 'none';
-                        }, 400);
-                    }, 120);
-                }
+                        preloader.style.display = 'none';
+                    }, 400);
+                }, 120);
+            }
 
-                if (document.readyState === 'complete' || document.readyState === 'interactive') {
-                    dismissPreloader();
-                } else {
-                    window.addEventListener('load', dismissPreloader);
-                    document.addEventListener('DOMContentLoaded', dismissPreloader);
-                    setTimeout(dismissPreloader, 600); // Fail-safe
-                }
-            })();
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                dismissPreloader();
+            } else {
+                window.addEventListener('load', dismissPreloader);
+                document.addEventListener('DOMContentLoaded', dismissPreloader);
+                setTimeout(dismissPreloader, 600); // Fail-safe
+            }
+        })();
 
         // 1. Initialize Lucide Icons
         lucide.createIcons();
@@ -3193,12 +3338,13 @@
                     setTimeout(() => {
                         const targetSection = document.querySelector(targetId);
                         if (targetSection) {
-                            const navbarOffset = 70;
+                            const navbarOffset = 72;
                             const elementTop = targetSection.getBoundingClientRect().top + window.pageYOffset;
-                            window.scrollTo({
-                                top: elementTop - navbarOffset,
-                                behavior: 'smooth'
-                            });
+                            if (window.__smoothScrollTo) {
+                                window.__smoothScrollTo(elementTop - navbarOffset);
+                            } else {
+                                window.scrollTo({ top: elementTop - navbarOffset, behavior: 'smooth' });
+                            }
                         }
                     }, 120);
                 }
@@ -3245,64 +3391,219 @@
         }
         setTimeout(typeLoop, 800);
 
-        // 7. Ultra-Smooth High-Performance Scroll Reveal (IntersectionObserver 60FPS)
-        const revealElements = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
-        if ('IntersectionObserver' in window) {
-            const revealObserver = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('active');
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, {
-                root: null,
-                threshold: 0.05,
-                rootMargin: '0px 0px 60px 0px'
-            });
+        // 7A. Buttery-Smooth Inertia Scroll Engine (Desktop Wheel + Custom Eased Anchor Scroll)
+        (function initSilkySmoothScroll() {
+            const prefersReduced = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+            let isPaused = false;
+            let currentY = window.scrollY || 0;
+            let targetY = currentY;
+            let rafId = null;
+            let lastTime = 0;
+            let anchorAnimId = null;
 
-            revealElements.forEach(el => revealObserver.observe(el));
-
-            // Instant fail-safe for elements near or inside viewport
-            setTimeout(() => {
-                revealElements.forEach(el => {
-                    const rect = el.getBoundingClientRect();
-                    if (rect.top < window.innerHeight + 150) {
-                        el.classList.add('active');
-                    }
-                });
-            }, 500);
-        } else {
-            // Fallback for older browsers
-            function checkScrollReveal() {
-                const windowHeight = window.innerHeight;
-                revealElements.forEach(el => {
-                    if (el.getBoundingClientRect().top < windowHeight - 40) {
-                        el.classList.add('active');
-                    }
-                });
+            function getMaxScroll() {
+                return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
             }
-            window.addEventListener('scroll', checkScrollReveal, { passive: true });
-            checkScrollReveal();
-            setTimeout(() => {
-                revealElements.forEach(el => el.classList.add('active'));
-            }, 800);
-        }
+
+            function stopAnchorAnim() {
+                if (anchorAnimId) {
+                    cancelAnimationFrame(anchorAnimId);
+                    anchorAnimId = null;
+                }
+            }
+
+            function stopWheelLoop() {
+                if (rafId) {
+                    cancelAnimationFrame(rafId);
+                    rafId = null;
+                }
+            }
+
+            function tickWheel(now) {
+                if (isPaused) {
+                    stopWheelLoop();
+                    return;
+                }
+                const dt = Math.min((now - lastTime) / 1000, 0.05) || 0.016;
+                lastTime = now;
+                const maxY = getMaxScroll();
+                targetY = Math.max(0, Math.min(maxY, targetY));
+
+                // Frame-rate independent exponential damping (mulus di 60Hz, 120Hz, 144Hz)
+                const factor = 1 - Math.exp(-9.5 * dt);
+                currentY += (targetY - currentY) * factor;
+
+                if (Math.abs(targetY - currentY) < 0.45) {
+                    currentY = targetY;
+                    window.scrollTo(0, Math.round(currentY));
+                    rafId = null;
+                    return;
+                }
+
+                window.scrollTo(0, currentY);
+                rafId = requestAnimationFrame(tickWheel);
+            }
+
+            function smoothScrollTo(destY, duration) {
+                const maxY = getMaxScroll();
+                const clampedDest = Math.max(0, Math.min(maxY, destY));
+                stopWheelLoop();
+                stopAnchorAnim();
+
+                if (prefersReduced) {
+                    window.scrollTo(0, clampedDest);
+                    currentY = clampedDest;
+                    targetY = clampedDest;
+                    return;
+                }
+
+                const startY = window.scrollY || 0;
+                const diff = clampedDest - startY;
+                if (Math.abs(diff) < 2) return;
+
+                const dur = duration || Math.min(950, Math.max(520, Math.abs(diff) * 0.42));
+                const startTime = performance.now();
+
+                function stepAnchor(now) {
+                    const elapsed = now - startTime;
+                    const t = Math.min(1, elapsed / dur);
+                    // EaseOutQuart: awal responsif, mendarat sangat lembut
+                    const ease = 1 - Math.pow(1 - t, 4);
+                    const nextY = startY + diff * ease;
+                    window.scrollTo(0, nextY);
+                    currentY = nextY;
+                    targetY = nextY;
+                    if (t < 1 && !isPaused) {
+                        anchorAnimId = requestAnimationFrame(stepAnchor);
+                    } else {
+                        anchorAnimId = null;
+                    }
+                }
+                anchorAnimId = requestAnimationFrame(stepAnchor);
+            }
+
+            // Hanya aktifkan wheel inertia pada perangkat desktop agar native touch mobile tetap 100% optimal
+            window.addEventListener('wheel', function (e) {
+                if (prefersReduced || isPaused || e.ctrlKey || document.body.style.overflow === 'hidden') return;
+                // Jangan ganggu kontainer internal yang memang punya scroll sendiri
+                const scrollable = e.target && e.target.closest && e.target.closest('.custom-scrollbar');
+                if (scrollable && scrollable.scrollWidth > scrollable.clientWidth && Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+
+                e.preventDefault();
+                stopAnchorAnim();
+                if (!rafId) {
+                    currentY = window.scrollY || 0;
+                    targetY = currentY;
+                }
+                const delta = e.deltaMode === 1 ? e.deltaY * 32 : (e.deltaMode === 2 ? e.deltaY * window.innerHeight : e.deltaY);
+                targetY = Math.max(0, Math.min(getMaxScroll(), targetY + delta * 0.92));
+
+                if (!rafId) {
+                    lastTime = performance.now();
+                    rafId = requestAnimationFrame(tickWheel);
+                }
+            }, { passive: false });
+
+            // Sinkronkan saat user scroll via sentuhan mobile, keyboard, atau drag scrollbar
+            window.addEventListener('touchstart', function () {
+                stopWheelLoop();
+                stopAnchorAnim();
+            }, { passive: true });
+
+            window.addEventListener('keydown', function (e) {
+                if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(e.key)) {
+                    stopWheelLoop();
+                    stopAnchorAnim();
+                }
+            }, { passive: true });
+
+            window.addEventListener('scroll', function () {
+                if (!rafId && !anchorAnimId) {
+                    currentY = window.scrollY || 0;
+                    targetY = currentY;
+                }
+            }, { passive: true });
+
+            window.__smoothScrollTo = smoothScrollTo;
+            window.__lenis = {
+                stop: function () { isPaused = true; stopWheelLoop(); stopAnchorAnim(); },
+                start: function () { isPaused = false; currentY = window.scrollY || 0; targetY = currentY; }
+            };
+        })();
+
+        // 7B. Ultra-Smooth Staggered Grid Scroll Reveal (IntersectionObserver 60FPS)
+        (function initGridScrollReveal() {
+            const revealElements = Array.from(document.querySelectorAll('.reveal, .reveal-left, .reveal-right'));
+            if (!revealElements.length) return;
+
+            function markRevealed(el) {
+                if (el.classList.contains('active')) return;
+                el.classList.add('active');
+                const delayStr = getComputedStyle(el).getPropertyValue('--d').trim();
+                const delayMs = delayStr.endsWith('ms')
+                    ? parseFloat(delayStr)
+                    : (delayStr.endsWith('s') ? parseFloat(delayStr) * 1000 : 0);
+                setTimeout(() => {
+                    el.classList.add('reveal-done');
+                }, Math.round(880 + (isNaN(delayMs) ? 0 : delayMs)));
+            }
+
+            if ('IntersectionObserver' in window) {
+                const revealObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            markRevealed(entry.target);
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, {
+                    root: null,
+                    threshold: 0.12,
+                    rootMargin: '0px 0px -60px 0px'
+                });
+
+                revealElements.forEach(el => revealObserver.observe(el));
+
+                // Munculkan langsung elemen yang sudah berada di dalam layar saat halaman dibuka
+                requestAnimationFrame(() => {
+                    revealElements.forEach(el => {
+                        const rect = el.getBoundingClientRect();
+                        if (rect.top < window.innerHeight - 40 && rect.bottom > 0) {
+                            markRevealed(el);
+                            revealObserver.unobserve(el);
+                        }
+                    });
+                });
+            } else {
+                function checkScrollReveal() {
+                    const windowHeight = window.innerHeight;
+                    revealElements.forEach(el => {
+                        if (el.getBoundingClientRect().top < windowHeight - 50) {
+                            markRevealed(el);
+                        }
+                    });
+                }
+                window.addEventListener('scroll', checkScrollReveal, { passive: true });
+                checkScrollReveal();
+            }
+        })();
 
         // Smooth in-page anchor navigation with fixed navbar offset compensation
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            if (anchor.classList.contains('mobile-link')) return;
             anchor.addEventListener('click', function (e) {
                 const targetId = this.getAttribute('href');
                 if (!targetId || targetId === '#') return;
                 const targetEl = document.querySelector(targetId);
                 if (targetEl) {
                     e.preventDefault();
-                    const navbarOffset = 74;
+                    const navbarOffset = 72;
                     const targetTop = targetEl.getBoundingClientRect().top + window.pageYOffset - navbarOffset;
-                    window.scrollTo({
-                        top: targetTop,
-                        behavior: 'smooth'
-                    });
+                    if (window.__smoothScrollTo) {
+                        window.__smoothScrollTo(targetTop);
+                    } else {
+                        window.scrollTo({ top: targetTop, behavior: 'smooth' });
+                    }
                     if (typeof playThwipSound === 'function') playThwipSound();
                 }
             });
